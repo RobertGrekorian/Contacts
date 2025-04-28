@@ -1,0 +1,61 @@
+﻿@model IEnumerable<Contact>
+
+@{
+    ViewData["Title"] = "Contact List";
+}
+
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <div class="row">
+            <div class="col-6">
+                <h2 class="mb-2">Contacts</h2>
+            </div>
+            <div class="col-6 mb-3 text-end">
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus m-2"></i> Create a new Contact
+                </a>
+            </div>
+        </div>
+        <div style="max-height: 400px; min-height: 400px;overflow-y: auto;">
+            <table class="table table-striped table-bordered ">
+                <thead class="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Country</th>
+                        <th>
+
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.FirstName</td>
+                            <td>@item.LastName</td>
+                            <td>@item.Phone</td>
+                            <td>@item.Email</td>
+                            <td>@item.Address @item.City @item.State , @item.PostalCode</td>
+                            <td>@item.Country?.CountryName</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-success bg-primary">
+                                    <i class="fas fa-pencil m-2"></i> Edit
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-success bg-danger">
+                                    <i class="fas fa-trash m-2"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

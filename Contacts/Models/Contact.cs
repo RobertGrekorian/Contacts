@@ -1,4 +1,7 @@
-﻿namespace Contacts.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Contacts.Models
 {
     public class Contact
     {
@@ -12,6 +15,8 @@
         public string? State { get; set; }
         public string? PostalCode { get; set; }        
         public int CountryId { get; set; }
-        public Country? Country { get; set; }
+        [ForeignKey("CountryId")]
+        [ValidateNever]
+        public Country Country { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using Contacts.Data;
 using Contacts.Models;
+using Contacts.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -8,18 +9,18 @@ namespace Contacts.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IContactRepository _repo;
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ApplicationDbContext db,ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger,IContactRepository repo)
         {
             _logger = logger;
-            _db = db;
+            _repo = repo;
         }
 
-        public IActionResult Index()
-        {
-            List<Contact> contacts = _db.Contacts.Include(u=>u.Country).ToList();
+        public async Task<IActionResult> Index()
+        {           
+            var contacts = await _repo.GetListAsync();
             return View(contacts);
         }
 

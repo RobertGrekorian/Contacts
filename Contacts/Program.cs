@@ -1,4 +1,5 @@
 using Contacts.Data;
+using Contacts.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,10 @@ builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("SQL_Local");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options=> options.UseSqlServer(connectionString));
+
+// Repositories
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 
 var app = builder.Build();
 
