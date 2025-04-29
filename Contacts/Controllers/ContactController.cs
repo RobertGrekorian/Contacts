@@ -52,6 +52,8 @@ namespace Contacts.Controllers
                 {
                     await _repo.CreateAsync(contactVM.Contact);
                 }
+
+                TempData["success"] = "Country Added to the List";
                 return RedirectToAction(nameof(Index));
             }
             return View(contactVM);
@@ -99,6 +101,7 @@ namespace Contacts.Controllers
 
             await _repo.UpdateAsync(contactVM.Contact);
 
+            TempData["success"] = "Contact Successfully Updated";
             return RedirectToAction(nameof(Index));
         }
         public async Task<IActionResult> Delete(int? id)
@@ -139,6 +142,7 @@ namespace Contacts.Controllers
             }
             await _repo.DeleteAsync(id);
 
+            TempData["success"] = "Contact Removed from the List";
             return RedirectToAction(nameof(Index));
         }
     }

@@ -35,7 +35,8 @@ namespace Contacts.Controllers
                 return View(country);
             }
             await _repo.CreateAsync(country);
-                        
+
+            TempData["success"] = "Country Successfully Added to the List";
             return RedirectToAction(nameof(Index)); 
         }
         public async Task<IActionResult> Edit(int? id)
@@ -67,6 +68,7 @@ namespace Contacts.Controllers
             }
             await _repo.UpdateAsync(country);
 
+            TempData["success"] = "Country Successfully Updated";
             return RedirectToAction(nameof(Index));
         }
         public async Task<IActionResult> Delete(int? id)
@@ -96,7 +98,7 @@ namespace Contacts.Controllers
                 return View(country);
             }
             await _repo.DeleteAsync(id);
-
+            TempData["success"] = "Country Removed from the List";
             return RedirectToAction(nameof(Index));
         }
     }
