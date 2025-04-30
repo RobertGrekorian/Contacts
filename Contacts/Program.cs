@@ -1,5 +1,7 @@
 using Contacts.Data;
+using Contacts.Models;
 using Contacts.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,30 @@ builder.Services.AddControllersWithViews();
 var connectionString = builder.Configuration.GetConnectionString("SQL_Local");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options=> options.UseSqlServer(connectionString));
+
+// Configure Identity
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 8;
+})
+.AddRoles<IdentityRole>()  // Add this if you need role support
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddSignInManager<SignInManager<ApplicationUser>>()
+.AddUserManager<UserManager<ApplicationUser>>()
+.AddDefaultTokenProviders();
+
+
+// Add authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddIdentityCookies();
 
 // Repositories
 builder.Services.AddScoped<IContactRepository, ContactRepository>();

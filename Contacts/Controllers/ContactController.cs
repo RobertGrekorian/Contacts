@@ -1,10 +1,12 @@
 ﻿using Contacts.Models;
 using Contacts.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Contacts.Controllers
 {
+    [Authorize]
     public class ContactController : Controller
     {
         private readonly IContactRepository _repo;
