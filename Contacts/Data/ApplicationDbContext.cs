@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Contacts.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser> // instead of DBContext because we are using Identity and 
+                                                                           // giving the custom ApplicationUser as the user model 
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { 
         

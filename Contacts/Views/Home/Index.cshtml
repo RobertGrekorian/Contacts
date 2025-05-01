@@ -1,1 +1,17 @@
-﻿<h3>Welcome to Contact Project</h3>
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@* @if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div id="notificationMessage" style="color: yellow">
+        @ViewBag.Message
+    </div>
+} *@
+@if (TempData["Message"] != null)
+{
+    <div id="notificationMessage" style="color: yellow">
+        @TempData["Message"]
+    </div>
+}
+
+<h3>Welcome to Contact Project</h3>

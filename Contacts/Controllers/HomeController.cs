@@ -1,6 +1,7 @@
 using Contacts.Data;
 using Contacts.Models;
 using Contacts.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -19,9 +20,8 @@ namespace Contacts.Controllers
         }
 
         public async Task<IActionResult> Index()
-        {           
-            var contacts = await _repo.GetListAsync();
-            return View(contacts);
+        {            
+            return View();
         }
 
         public IActionResult About()

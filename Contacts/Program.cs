@@ -2,6 +2,7 @@ using Contacts.Data;
 using Contacts.Models;
 using Contacts.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +41,11 @@ builder.Services.AddAuthentication(options =>
 // Repositories
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+
+
+//Email Sender
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
 

@@ -1,8 +1,10 @@
-﻿using Contacts.Models;
+﻿using Contacts.Data;
+using Contacts.Models;
 using Contacts.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Contacts.Controllers
 {
@@ -11,11 +13,13 @@ namespace Contacts.Controllers
     {
         private readonly IContactRepository _repo;
         private readonly ICountryRepository _countryrepo;
+        private readonly ApplicationDbContext _context;
 
-        public ContactController(IContactRepository repo, ICountryRepository countryrepo)
+        public ContactController(IContactRepository repo, ICountryRepository countryrepo, ApplicationDbContext context)
         {
             _repo = repo;
             _countryrepo = countryrepo;
+            _context = context;
         }
         public async Task<IActionResult> Index()
         {
@@ -48,6 +52,12 @@ namespace Contacts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ContactVM contactVM)
         {
+
+            if (await _context.Contacts.AnyAsync(u => u.Email == contactVM.Contact.Email))
+            {
+                ModelState.AddModelError("Email", "Email is already in use.");
+                return View(contactVM);
+            }
             if (ModelState.IsValid)
             {
                 if (contactVM.Contact != null)

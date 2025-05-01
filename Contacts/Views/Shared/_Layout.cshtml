@@ -9,17 +9,86 @@
     <link rel="stylesheet" href="~/Contacts.styles.css" asp-append-version="true" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+    <style>
+        main {
+            padding-top: 160px; /* Adjust based on the height of your header */
+        }
 
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            z-index: 1000; /* Ensure it stays above other elements */
+        }
+
+        .nav-item:hover {
+            background: #ffa500;
+            border-radius: 20px;
+        }
+
+        .carousel-control-next-icon, .carousel-control-prev-icon {
+            color: blue !important; /* Change color to blue */
+        }
+    </style>
+    <style>
+    #notificationMessage {
+        background-color: black;
+        width: 500px;
+        height: 90px;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        font-size: 28px;
+        animation: movelefttoright 10s linear ;
+        transform: translateX(-100%);
+        text-align: center;
+        color: white;
+        line-height: 90px;
+    }
+
+    @@keyframes movelefttoright {
+        0% {
+            transform: translateX(-100%);
+        }
+
+        20% {
+            transform: translateX(25%);
+        }
+
+        50% {
+            transform: translateX(50%);
+        }
+
+        80% {
+            transform: translateX(-50%);
+        }
+
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+
+/*     body {
+        background-image: url('@Url.Content("~/images/logo-fill.png")');
+        background-repeat: repeat-x;
+        background-size: auto 200px;
+    } */
+</style>
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
+                <ul class="navbar-nav me-auto">
                     <!-- Dropdown starts here -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -33,37 +102,44 @@
                                 <a class="dropdown-item" asp-area="" asp-controller="Country" asp-action="Index">Countries</a>
                             </li>
                             <div class="dropdown-divider"></div>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                            @if (User.Identity?.IsAuthenticated ?? false)
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-area="" asp-controller="Manage" asp-action="Index" title="Manage">Hello @User.Identity.Name!</a>
-                                </li>
-                                <li class="nav-item">
-                                    <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
-                                        <button type="submit" class="nav-link btn btn-link">Logout</button>
-                                    </form>
-                                </li>
-                            }
-                            else
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
-                                </li>
-                            }
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>                            
                         </ul>
                     </li>
-                    <!-- Dropdown ends here -->
+                </ul>
+                <a class="nav-item active" asp-area="" asp-controller="Home" asp-action="About">About</a>
+                <!-- Dropdown ends here -->
+                <ul class="navbar-nav ms-auto">
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        
+                            <li class="nav-item text-end">
+                                <a class="nav-link" asp-area="" asp-controller="Manage" asp-action="Index" title="Manage">Hello @User.Identity.Name!</a>
+                            </li>
+                            <li class="nav-item text-end">
+                                <form class="form-inline" asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="nav-link btn btn-link">Logout</button>
+                                </form>
+                            </li>
+                        
+                    }
+                    else
+                    {
+
+                        <li class="nav-item text-end">
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
+                        </li>
+                        <li class="nav-item text-end">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+                        </li>
+                      
+                    }                    
                 </ul>
             </div>
         </nav>        
     </header>
     <div class="container">
         <main role="main" class="pb-3">
-            
+            <partial name="_Notification" />
             @RenderBody()
         </main>
     </div>
@@ -76,7 +152,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <partial name="_Notification" />
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

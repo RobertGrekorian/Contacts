@@ -47,7 +47,11 @@
     </div>
 </div>
 
-<script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
     var deleteForm = document.getElementById('deleteForm');
     var itemName = document.getElementById('itemName');
 
@@ -58,11 +62,7 @@
         var name = button.getAttribute('data-name');
 
         itemName.textContent = name;
-        deleteForm.action = '/Country/Delete/' + itemId; 
+        deleteForm.action = '/Country/Delete/' + itemId;
     });
-</script>
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    </script>
 }
