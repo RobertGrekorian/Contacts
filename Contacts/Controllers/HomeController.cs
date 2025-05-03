@@ -20,7 +20,8 @@ namespace Contacts.Controllers
         }
 
         public async Task<IActionResult> Index()
-        {            
+        {
+            ViewBag.Message = "Successfully Logged in";
             return View();
         }
 

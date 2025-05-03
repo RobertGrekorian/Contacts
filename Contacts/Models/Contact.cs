@@ -24,5 +24,7 @@ namespace Contacts.Models
         [ForeignKey("CountryId")]
         [ValidateNever]
         public Country Country { get; set; }
+        public ICollection<SharedContact>? SharedWithUsers { get; set; }
+
     }
 }

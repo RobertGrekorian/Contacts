@@ -2,6 +2,7 @@
 using Contacts.Models;
 using Contacts.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,12 +14,17 @@ namespace Contacts.Controllers
     {
         private readonly IContactRepository _repo;
         private readonly ICountryRepository _countryrepo;
+        private readonly ISharedContactRepository _sharedcontactrepo;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public ContactController(IContactRepository repo, ICountryRepository countryrepo, ApplicationDbContext context)
+        public ContactController(IContactRepository repo, ICountryRepository countryrepo, ApplicationDbContext context,
+                                ISharedContactRepository sharedContactRepository, UserManager<ApplicationUser> userManager)
         {
             _repo = repo;
             _countryrepo = countryrepo;
+            _sharedcontactrepo = sharedContactRepository;
+            _userManager = userManager;
             _context = context;
         }
         public async Task<IActionResult> Index()
@@ -44,6 +50,12 @@ namespace Contacts.Controllers
                 Contact = new Contact()
             };
 
+            ViewBag.Countries = (await _countryrepo.GetListAsync()).Select(c => new SelectListItem
+            {
+                Text = c.CountryName,
+                Value = c.CountryId.ToString()
+            }).ToList();
+
             return View(contactVM);
         }
 
@@ -55,10 +67,9 @@ namespace Contacts.Controllers
 
             if (await _context.Contacts.AnyAsync(u => u.Email == contactVM.Contact.Email))
             {
-                ModelState.AddModelError("Email", "Email is already in use.");
-                return View(contactVM);
+                ModelState.AddModelError(string.Empty, "Email is already in use.");
             }
-            if (ModelState.IsValid)
+            else if (ModelState.IsValid)
             {
                 if (contactVM.Contact != null)
                 {
@@ -68,6 +79,11 @@ namespace Contacts.Controllers
                 TempData["success"] = "Country Added to the List";
                 return RedirectToAction(nameof(Index));
             }
+            ViewBag.Countries = (await _countryrepo.GetListAsync()).Select(c => new SelectListItem
+            {
+                Text = c.CountryName,
+                Value = c.CountryId.ToString()
+            }).ToList();
             return View(contactVM);
         }
 
@@ -155,6 +171,35 @@ namespace Contacts.Controllers
             await _repo.DeleteAsync(id);
 
             TempData["success"] = "Contact Removed from the List";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Share(int? id)
+        {            
+            if(id == null)
+            {
+                return BadRequest();
+            }
+                       
+            var users = _userManager.Users.ToList();
+
+            return (View(users));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Share(int id,[FromBody]List<string> selectedUserIds)
+        {
+            if (selectedUserIds == null)
+            {
+                return BadRequest();
+            }
+
+            foreach(var userId in selectedUserIds)
+            {
+                await _sharedcontactrepo.ShareContactAsync(id,userId,false);
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }

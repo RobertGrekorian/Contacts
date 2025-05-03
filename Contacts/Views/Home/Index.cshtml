@@ -1,12 +1,12 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-@* @if (!string.IsNullOrEmpty(ViewBag.Message))
+@if (!string.IsNullOrEmpty(ViewBag.Message))
 {
-    <div id="notificationMessage" style="color: yellow">
+    <div id="notificationMessage" style="color: red">
         @ViewBag.Message
     </div>
-} *@
+} 
 @if (TempData["Message"] != null)
 {
     <div id="notificationMessage" style="color: yellow">
