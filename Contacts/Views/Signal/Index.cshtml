@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "SignalR with jQuery";
+}
+
+<div class="container mt-5">
+    <h1>SignalR Chat with jQuery</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="userInput">User Name</label>
+                <input type="text" class="form-control" id="userInput" value="User" />
+            </div>
+            <div class="form-group">
+                <label for="messageInput">Message</label>
+                <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." />
+            </div>
+            <button id="sendButton" class="btn btn-primary">Send Message</button>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Messages</div>
+                <ul id="messagesList" class="list-group list-group-flush"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        $(function () {
+            // Initialize connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Start connection
+            async function startConnection() {
+                try {
+                    await connection.start();
+                    console.log("SignalR Connected.");
+                } catch (err) {
+                    console.log(err);
+                    setTimeout(startConnection, 5000);
+                }
+            }
+
+            // Handle connection closed
+            connection.onclose(async () => {
+                await startConnection();
+            });
+
+            // Start the connection
+            startConnection();
+
+            // Receive messages from hub
+            connection.on("ReceiveMessage", function (user, message) {
+                $('#messagesList').append(
+                    $('<li>').addClass('list-group-item').text(`${user}: ${message}`)
+                );
+            });
+
+            // Send message to hub
+            $('#sendButton').click(async function () {
+                const user = $('#userInput').val();
+                const message = $('#messageInput').val();
+
+                try {
+                    await connection.invoke("SendMessage", user, message);
+                    $('#messageInput').val('').focus();
+                } catch (err) {
+                    console.error(err);
+                    $('#messagesList').append(
+                        $('<li>').addClass('list-group-item list-group-item-danger')
+                            .text("Error sending message")
+                    );
+                }
+            });
+
+            // Allow sending message with Enter key
+            $('#messageInput').keypress(function (e) {
+                if (e.which === 13) {
+                    $('#sendButton').click();
+                    return false;
+                }
+            });
+        });
+    </script>
+}
