@@ -9,4 +9,12 @@ namespace Contacts.Models
         [ValidateNever]
         public IEnumerable<SelectListItem>? CountryList { get; set; }
     }
+
+    public class SharedContactVM
+    {
+        public int Id { get; set; }
+        public string SelectedUserId { get; set; }
+        public IEnumerable<SelectListItem>? Users { get; set; }
+        
+    }
 }

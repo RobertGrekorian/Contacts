@@ -1,4 +1,4 @@
-﻿@model SharedContactVM
+﻿@model SharedContactWithViewBagVM
 
 @{
     ViewData["Title"] = "Share Contact";
@@ -9,12 +9,12 @@
 <hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="Share">
+        <form asp-action="ShareWithViewBag">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="@Model.Id" />
             <div class="form-group">
                 <label asp-for="@Model.SelectedUserId" class="control-label"></label>
-                <select asp-for="@Model.SelectedUserId" asp-items="@Model.Users" class="form-control">
+                <select asp-for="@Model.SelectedUserId" asp-items="@ViewBag.Users" class="form-control">
                     <option disabled selected>---Select User---</option>
                 </select>
                 <span asp-validation-for="@Model.SelectedUserId" class="text-danger"></span>

@@ -1,14 +1,27 @@
+using Contacts.Controllers.SignalRHub;
 using Contacts.Data;
 using Contacts.Models;
 using Contacts.Repositories;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSignalR();
+
+//builder.Services.AddSignalR(options =>
+//{
+//    options.EnableDetailedErrors = true;
+//    options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+//});
+
+
 
 var connectionString = builder.Configuration.GetConnectionString("SQL_Local");
 
@@ -68,5 +81,16 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<ChatHub>("/chathub");
 
+//// Map SignalR Hub with custom options
+//app.MapHub<ChatHub>("/chathub", options =>
+//{
+//    options.Transports = HttpTransportType.WebSockets | HttpTransportType.LongPolling;
+
+//});
 app.Run();
+
+
+
+

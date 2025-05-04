@@ -104,7 +104,11 @@ namespace Contacts.Controllers
                 }).ToList(),
                 Contact = await _repo.GetAsync(id.Value)
             };
-
+            ViewBag.Countries = (await _countryrepo.GetListAsync()).Select(c => new SelectListItem
+            {
+                Text = c.CountryName,
+                Value = c.CountryId.ToString()
+            }).ToList();
             if (contactVM.Contact == null)
             {
                 return NotFound();
@@ -124,7 +128,12 @@ namespace Contacts.Controllers
             }
             if (!ModelState.IsValid)
             {
-                return(View(contactVM));
+                ViewBag.Countries = (await _countryrepo.GetListAsync()).Select(c => new SelectListItem
+                {
+                    Text = c.CountryName,
+                    Value = c.CountryId.ToString()
+                }).ToList();
+                return (View(contactVM));
             }
 
             await _repo.UpdateAsync(contactVM.Contact);
@@ -181,24 +190,82 @@ namespace Contacts.Controllers
             {
                 return BadRequest();
             }
-                       
-            var users = _userManager.Users.ToList();
 
-            return (View(users));
+            var model = new SharedContactVM
+            {
+                Id = id.Value,
+                Users = _userManager.Users.Select(c => new SelectListItem
+                {
+                    //Text = c.FirstName + " " + c.LastName,
+                    //Text = string.Format("{0} {1}", c.FirstName, c.LastName),
+                    Text = $"{c.FirstName} {c.LastName}",
+                    Value = c.Id
+                }).ToList()
+            };
+
+
+            return View(model);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Share(int id,[FromBody]List<string> selectedUserIds)
+        public async Task<IActionResult> Share(int id, SharedContactVM model)
         {
-            if (selectedUserIds == null)
+            //if (selectedUserIds == null)
+            //{
+            //    return BadRequest();
+            //}
+
+            await _sharedcontactrepo.ShareContactAsync(id, model.SelectedUserId, false);
+
+            //foreach(var userId in selectedUserIds)
+            //{
+            //    await _sharedcontactrepo.ShareContactAsync(id,userId,false);
+            //}
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ShareWithViewBag(int? id)
+        {
+            if (id == null)
             {
                 return BadRequest();
             }
 
-            foreach(var userId in selectedUserIds)
+            var model = new SharedContactWithViewBagVM { Id = id.Value };
+            ViewBag.Users = await _userManager.Users.Select(c => new SelectListItem
             {
-                await _sharedcontactrepo.ShareContactAsync(id,userId,false);
+                //Text = c.FirstName + " " + c.LastName,
+                //Text = string.Format("{0} {1}", c.FirstName, c.LastName),
+                Text = $"{c.FirstName} {c.LastName}",
+                Value = c.Id
+            }).ToListAsync();
+
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ShareWithViewBag(int id, SharedContactWithViewBagVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError(string.Empty, "Model is not valid.");
+                ViewBag.Users = _userManager.Users.Select(c => new SelectListItem
+                {
+                    Text = $"{c.FirstName} {c.LastName}",
+                    Value = c.Id
+                }).ToList();
+                return View(model);
             }
+
+            await _sharedcontactrepo.ShareContactAsync(id, model.SelectedUserId, false);
+
+            //foreach(var userId in selectedUserIds)
+            //{
+            //    await _sharedcontactrepo.ShareContactAsync(id,userId,false);
+            //}
 
             return RedirectToAction(nameof(Index));
         }
