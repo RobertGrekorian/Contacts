@@ -1,10 +1,12 @@
-﻿using Contacts.Data;
+﻿using Contacts.Controllers.SignalRHub;
+using Contacts.Data;
 using Contacts.Models;
 using Contacts.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Contacts.Controllers
@@ -17,15 +19,18 @@ namespace Contacts.Controllers
         private readonly ISharedContactRepository _sharedcontactrepo;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<ChatHub> _hubContext;
 
         public ContactController(IContactRepository repo, ICountryRepository countryrepo, ApplicationDbContext context,
-                                ISharedContactRepository sharedContactRepository, UserManager<ApplicationUser> userManager)
+                                ISharedContactRepository sharedContactRepository, UserManager<ApplicationUser> userManager,
+                                IHubContext<ChatHub> hubContext)
         {
             _repo = repo;
             _countryrepo = countryrepo;
             _sharedcontactrepo = sharedContactRepository;
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
         }
         public async Task<IActionResult> Index()
         {
@@ -194,13 +199,13 @@ namespace Contacts.Controllers
             var model = new SharedContactVM
             {
                 Id = id.Value,
-                Users = _userManager.Users.Select(c => new SelectListItem
+                Users = await _userManager.Users.Select(c => new SelectListItem
                 {
                     //Text = c.FirstName + " " + c.LastName,
                     //Text = string.Format("{0} {1}", c.FirstName, c.LastName),
                     Text = $"{c.FirstName} {c.LastName}",
                     Value = c.Id
-                }).ToList()
+                }).ToListAsync()
             };
 
 
@@ -210,10 +215,11 @@ namespace Contacts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Share(int id, SharedContactVM model)
         {
-            //if (selectedUserIds == null)
-            //{
-            //    return BadRequest();
-            //}
+            if (model.SelectedUserId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Select a user to share .");
+                return View(model);
+            }
 
             await _sharedcontactrepo.ShareContactAsync(id, model.SelectedUserId, false);
 
@@ -249,25 +255,34 @@ namespace Contacts.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ShareWithViewBag(int id, SharedContactWithViewBagVM model)
         {
+            if (model.SelectedUserId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Select a user to share .");
+                return View(model);
+            }
+            
             if (!ModelState.IsValid)
             {
                 ModelState.AddModelError(string.Empty, "Model is not valid.");
-                ViewBag.Users = _userManager.Users.Select(c => new SelectListItem
+                ViewBag.Users = await _userManager.Users.Select(c => new SelectListItem
                 {
                     Text = $"{c.FirstName} {c.LastName}",
                     Value = c.Id
-                }).ToList();
+                }).ToListAsync();
                 return View(model);
-            }
-
+            }           
+                
             await _sharedcontactrepo.ShareContactAsync(id, model.SelectedUserId, false);
-
+            //var sourceUser = await 
+            var targetUser = await _userManager.FindByIdAsync(model.SelectedUserId);
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", $"Contact Information Shared With {targetUser.FirstName} {targetUser.LastName}");
             //foreach(var userId in selectedUserIds)
             //{
             //    await _sharedcontactrepo.ShareContactAsync(id,userId,false);
             //}
 
             return RedirectToAction(nameof(Index));
+                
         }
     }
 }

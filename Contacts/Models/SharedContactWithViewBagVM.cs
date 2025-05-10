@@ -5,6 +5,6 @@ namespace Contacts.Models
     public class SharedContactWithViewBagVM
     {
         public int Id { get; set; }
-        public string SelectedUserId { get; set; }
+        public string? SelectedUserId { get; set; }
     }
 }

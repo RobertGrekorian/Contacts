@@ -60,6 +60,29 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 </div>
+
+<ul style="border: 1px solid red;" id="messagesList"><li>Recently Shared Contacts</li></ul>
+
+@section Scripts {
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chathub")
+        .build();
+
+    connection.on("ReceiveMessage", function (message) {
+        // Append message to your chat or UI
+            const msgContainer = document.getElementById("messagesList");
+        const msg = document.createElement("li");
+        msg.textContent = message;
+        msgContainer.appendChild(msg);
+    });
+
+    connection.start().catch(function (err) {
+        return console.error(err.toString());
+    });
+</script>
+
+}
