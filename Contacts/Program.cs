@@ -55,6 +55,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<ISharedContactRepository, SharedContactRepository>();
+builder.Services.AddScoped<IDapperContactRepository, DapperContactRepository>();
 
 
 //Email Sender
