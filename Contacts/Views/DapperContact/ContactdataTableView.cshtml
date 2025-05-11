@@ -1,0 +1,309 @@
+﻿@* @using FieldTrip.Model.Database
+@using FieldTrip.Utility;
+@using FieldTrip.Model.ViewModel;
+@using static FieldTrip.Model.ViewModel.Enums;
+@model FieldTrip.Model.ViewModel.ReportsVM;
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+@{
+    ViewData["Title"] = "Contact List";
+    ViewBag.TitleHeader = "Contact List";
+}
+
+<style>
+    th.sorting_asc::after {
+        transform: translateY(-70%);
+    }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <script src="~/js/FieldTrip.js"></script>
+    <script>
+        $(document).ready(async function () {
+            const tripTypeEnum = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Enum.GetValues(typeof(Enums.TripTypeEnum)).Cast<Enums.TripTypeEnum>().Select((x) => Helper.GetEnumDisplayName(x))));
+            const statusTypeEnum = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Enum.GetValues(typeof(Enums.CurrentStatusEnum)).Cast<Enums.CurrentStatusEnum>().Select((x) => Helper.GetEnumDisplayName(x))));
+
+            let tripTable = null;
+            let selectedFilters = {};
+
+            // Get available columns and initialize the table.
+            await $.ajax({
+                url: "/DapperContact/GetContactsColumns",
+                type: "GET",
+                dataType: "json"
+            }).done((d) => {
+                $("#contactDataTable thead tr").empty();
+
+                d.forEach((e) => {
+                    $("#contactDataTable thead tr").append(`<th style="width: 100px; height: 80px">${e}</th>`);
+                });
+
+                var columns = d.map((x) => ({ data: x }));
+
+                tripTable = buildTable(columns);
+            });
+
+            function buildTable(columns) {
+                return $("#contactDataTable").DataTable({
+                    ajax: {
+                        url: "/DapperContact/GetContacts",
+                        type: "POST",
+                        data: function (d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                limit: d.length,
+                                filters: selectedFilters,
+                                sort: "desc",
+                            };
+                        },
+                        columns: columns,
+                        dataSrc: function (result) {
+                            updateFilters(result.AvailableFilters);
+                            result.recordsTotal = result.RecordsTotal;
+                            result.recordsFiltered = result.RecordsFiltered;
+                            return result.Data;
+                        }
+                    },
+                    columns,
+                    serverSide: true,
+                    autoWidth: false,
+                    pageLength: 10,
+                    lengthChange: false,
+                    dom: "lrtip", // Remove search bar
+                    scrollX: true
+                });
+            }
+
+            function updateFilters(availableFilters) {
+                $.each(availableFilters.SchoolYears, (i, value) => {
+                    populateFilter("#yearFilter", value);
+                });
+
+                $.each(availableFilters.Regions, (i, value) => {
+                    populateFilter("#regionFilter", value);
+                });
+
+                $.each(availableFilters.TripTypes, (i, value) => {
+                    populateFilter("#tripTypeFilter", value);
+                });
+
+                $.each(availableFilters.Statuses, (i, value) => {
+                    populateFilter("#statusFilter", value);
+                });
+            }
+
+            function populateFilter(filterName, value) {
+                let name = value;
+
+                if ($(filterName).find(`option[value="${value}"]`).length == 0) {
+                    if (filterName == "#tripTypeFilter") {
+                        name = tripTypeEnum[value];
+                    } else if (filterName == "#statusFilter") {
+                        name = statusTypeEnum[value];
+                    }
+                    else if (filterName === "#yearFilter") {
+                        // If value is like "20242025", convert to "2024-25"
+                        if (value.length === 8) {
+                            const startYear = value.substring(0, 4);
+                            const endYearShort = value.substring(6, 8);
+                            name = `${startYear}-${endYearShort}`;
+                        }
+                    }
+
+                    $(filterName).append($(`<option value="${value}">${name}</option>`));
+                }
+            }
+
+            $("#exportButton").on("click", function () {
+                let selectedFilters = {
+                    schoolYears: $("#yearFilter").val() ? [$("#yearFilter").val()] : [],
+                    regions: $("#regionFilter").val() ? [$("#regionFilter").val()] : [],
+                    schoolNames: $("#schoolNameFilter").val() ? [$("#schoolNameFilter").val()] : [],
+                    costCenters: $("#costCenterFilter").val() ? [$("#costCenterFilter").val()] : [],
+                    statuses: $("#statusFilter").val() ? [$("#statusFilter").val()] : [],
+                    dateFrom: $('#dateFromFilter').val() || null,
+                    dateTo: $('#dateToFilter').val() || null,
+                    tripTypes: $("#tripTypeFilter").val() ? [$("#tripTypeFilter").val()] : [],
+                    buses: $("#busFilter").val()
+                };
+
+                console.log("Sending Filters:", selectedFilters); // Debugging to check what is being sent
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Reports/ExportFilteredToExcel",
+                    data: JSON.stringify({
+                        selectedFilters: selectedFilters
+                    }),  // Corrected JSON format
+                    contentType: "application/json",  // Ensure JSON format is understood
+                    xhrFields: {
+                        responseType: "blob",
+                    },
+                    success: function (blob) {
+                        var link = document.createElement("a");
+                        var url = window.URL.createObjectURL(blob);
+                        link.href = url;
+                        link.download = "FilteredFieldTrips.xlsx";
+                        document.body.appendChild(link);
+                        link.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(link);
+                    },
+                    error: function (xhr) {
+                        console.error("Export failed:", xhr.responseText);
+                        $('#alertModal .modal-body').html(`Failed to export data. Please try again.`);
+                        $('#alertModal').modal('show');
+                    }
+                });
+            });
+
+
+            $("#pageLengthSelect").on("change", function () {
+                var newPageLength = parseInt($(this).val());
+                tripTable.page.len(newPageLength).draw();
+            });
+
+            $("#viewReportButton").on("click", function () {
+                selectedFilters = {
+                    schoolYears: [$("#yearFilter").val()],
+                    regions: [$("#regionFilter").val()],
+                    schoolNames: [$("#schoolNameFilter").val()],
+                    costCenters: [$("#costCenterFilter").val()],
+                    statuses: [$("#statusFilter").val()],
+                    dateFrom: $('#dateFromFilter').eq(0).val(),
+                    dateTo: $('#dateToFilter').eq(0).val(),
+                    tripTypes: [$("#tripTypeFilter").val()],
+                    buses: $("#busFilter").val()
+                }
+
+                tripTable.draw();
+            });
+
+            $("#resetButton").on("click", function () {
+                $("#yearFilter").val('');
+                $("#regionFilter").val('');
+                $("#schoolNameFilter").val('');
+                $("#costCenterFilter").val('');
+                $("#statusFilter").val('');
+                $("#tripTypeFilter").val('');
+                $("#busFilter").val('');
+                $('#dateFromFilter').eq(0).val('');
+                $('#dateToFilter').eq(0).val('');
+            });
+        });
+    </script>
+}
+<div class="dataTable">
+    <div class="d-flex justify-content-end align-items-center pb-4">
+        <button id="exportButton" class="btn ps-5 exportExcelBtn" alt="Export report to Excel">
+            Export Excel
+        </button>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="yearFilter"><b>School Year</b></label>
+                <select id="yearFilter" class="form-control custom-select form-select" style="text-align: center;">
+                    <option value="">-Select One-</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="regionFilter"><b>Region</b></label>
+                <select id="regionFilter" class="form-control custom-select form-select" style="text-align: center;">
+                    <option value="">-Select One-</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="schoolNameFilter"><b>School Name</b></label>
+                <input id="schoolNameFilter" class="form-control" style="text-align: center;" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="costCenterFilter"><b>Cost Center</b></label>
+                <input id="costCenterFilter" class="form-control" style="text-align: center;" />
+            </div>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="dateFromFilter" class="mr-2"><b>Date From:</b></label>
+                <input id="dateFromFilter" class="form-control custom-select mr-sm-2" type="date" placeholder="MM/DD/YYYY" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="dateToFilter" class="mr-2"><b>Date To:</b></label>
+                <input id="dateToFilter" class="form-control custom-select mr-sm-2" type="date" placeholder="MM/DD/YYYY" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="tripTypeFilter"><b>Trip Type</b></label>
+                <select id="tripTypeFilter" class="form-control custom-select form-select" style="text-align: center;">
+                    <option value="">-Select One-</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="statusFilter"><b>Status</b></label>
+                <select id="statusFilter" class="form-control custom-select form-select" style="text-align: center;">
+                    <option value="">-Select One-</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="busFilter"><b>LAUSD Bus</b></label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="/images/Bus.svg" alt="Bus Info" title="Bus Info" style="height: 25px;" />
+                    <select id="busFilter" class="form-control custom-select form-select" style="text-align: center;">
+                        <option value="">-Select One-</option>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <br />
+                <button id="viewReportButton" class="currenttrips-button rounded-pill px-4 py-1">
+                    <img src="~/images/Reports.svg" alt="icon" />
+                    View Report
+                </button>
+                <button id="resetButton" class="currenttrips-button rounded-pill px-4 py-1">
+                    <i class="fa fa-clock-rotate-left"></i>
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="pt-4 table-responsive" style="overflow-x: auto; max-height: 500px;">
+        <table id="gridReport" class="table table-striped" style="margin-bottom: 0px; width: 100%">
+            <thead class="text-center">
+                <tr>
+                </tr>
+            </thead>
+        </table>
+        <div>
+            <label for="pageLengthSelect">Page Length:</label>
+            <select id="pageLengthSelect">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+    </div>
+ *@

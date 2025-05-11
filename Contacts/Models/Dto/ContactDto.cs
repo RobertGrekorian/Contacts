@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Contacts.Models
+namespace Contacts.Models.Dto
 {
-    [Index(nameof(Email), IsUnique = true)]
-    public class Contact
+    public class ContactDto
     {
         public int Id { get; set; }
-        public string? UserId { get;set; }
+        public string? UserId { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         [Required]
@@ -19,13 +17,9 @@ namespace Contacts.Models
         public string? Address { get; set; }
         public string? City { get; set; }
         public string? State { get; set; }
-        public string? PostalCode { get; set; }        
+        public string? PostalCode { get; set; }
         public int CountryId { get; set; }
-
-        [ForeignKey("CountryId")]
-        [ValidateNever]
-        public Country Country { get; set; }
-        public ICollection<SharedContact>? SharedWithUsers { get; set; }
-
+        public string? CountryName { get; set; }
+        
     }
 }

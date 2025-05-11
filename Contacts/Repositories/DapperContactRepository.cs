@@ -1,4 +1,5 @@
 ﻿using Contacts.Models;
+using Contacts.Models.Dto;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -6,7 +7,7 @@ namespace Contacts.Repositories
 {
     public interface IDapperContactRepository
     {
-        Task<IEnumerable<Contact>> GetListAsync();
+        Task<IEnumerable<ContactDto>> GetListAsync();
         //Task<Contact?> GetAsync(int id);
         //Task CreateAsync(Contact contact);
         //Task UpdateAsync(Contact contact);
@@ -21,18 +22,19 @@ namespace Contacts.Repositories
             _connectionString = configuration.GetConnectionString("SQL_Local");
         }
 
-        public async Task<IEnumerable<Contact>> GetListAsync()
+        public async Task<IEnumerable<ContactDto>> GetListAsync()
         {
             try
             {
                 using var connect = new SqlConnection(_connectionString);
 
-                return await connect.QueryAsync<Contact>("SELECT * FROM Contacts");
+                return await connect.QueryAsync<ContactDto>("SELECT * FROM Contacts as contactTable inner join countries as countryTable on "+
+                                                         "contactTable.countryId = countryTable.CountryId ");
 
             }
             catch (Exception e)
             {
-                return Enumerable.Empty<Contact>();
+                return Enumerable.Empty<ContactDto>();
                 throw;
             }
         }
