@@ -22,4 +22,9 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ContactData\ContactData.csproj" />
+    <ProjectReference Include="..\ContactLib\ContactLib.csproj" />
+  </ItemGroup>
+
 </Project>

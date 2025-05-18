@@ -1,6 +1,8 @@
+using ContactData;
+using ContactLib.Services;
 using Contacts.Data;
 using Contacts.Models;
-using Contacts.Repositories;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +12,24 @@ namespace Contacts.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IContactRepository _repo;
         private readonly ILogger<HomeController> _logger;
+        private readonly ITestService _testService;
+        private readonly IDapperContactRepository _dapperContactRepository;
 
-        public HomeController(ILogger<HomeController> logger,IContactRepository repo)
+        public HomeController(ILogger<HomeController> logger, ITestService testService,
+            IDapperContactRepository dapperContactRepository)
         {
             _logger = logger;
-            _repo = repo;
+            _testService = testService;
+            _dapperContactRepository = dapperContactRepository;
         }
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.Message = "Successfully Logged in";
+            ViewBag.Message = _testService.GetHelloWorld();
+
+            ViewBag.Message = _dapperContactRepository.GetContactName();
+
             return View();
         }
 

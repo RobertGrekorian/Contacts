@@ -30,6 +30,7 @@ namespace Contacts.Repositories
 
                 return await connect.QueryAsync<ContactDto>("SELECT * FROM Contacts as contactTable inner join countries as countryTable on "+
                                                          "contactTable.countryId = countryTable.CountryId ");
+                
 
             }
             catch (Exception e)

@@ -1,3 +1,4 @@
+using ContactLib.Services;
 using Contacts.Controllers.SignalRHub;
 using Contacts.Data;
 using Contacts.Models;
@@ -57,10 +58,13 @@ builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<ISharedContactRepository, SharedContactRepository>();
 builder.Services.AddScoped<IDapperContactRepository, DapperContactRepository>();
 
+builder.Services.AddScoped<ContactData.IDapperContactRepository, ContactData.DapperContactRepository>();
+
 
 //Email Sender
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<ITestService, TestService>();
 
 var app = builder.Build();
 
