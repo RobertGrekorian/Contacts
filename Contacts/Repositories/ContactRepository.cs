@@ -1,5 +1,5 @@
-﻿using Contacts.Data;
-using Contacts.Models;
+﻿using ContactsData.Models;
+using ContactsData.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

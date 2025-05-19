@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Contacts.Models.Dto
+namespace ContactsData.Models.Dto
 {
     public class ContactDto
     {

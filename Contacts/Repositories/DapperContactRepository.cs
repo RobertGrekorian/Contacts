@@ -1,5 +1,5 @@
-﻿using Contacts.Models;
-using Contacts.Models.Dto;
+﻿using ContactsData.Models;
+using ContactsData.Models.Dto;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -8,6 +8,7 @@ namespace Contacts.Repositories
     public interface IDapperContactRepository
     {
         Task<IEnumerable<ContactDto>> GetListAsync();
+        Task<Contact?> GetByEmailAsync(string email);
         //Task<Contact?> GetAsync(int id);
         //Task CreateAsync(Contact contact);
         //Task UpdateAsync(Contact contact);
@@ -46,7 +47,12 @@ namespace Contacts.Repositories
             return await connection.QueryFirstOrDefaultAsync<Contact>(
                 "SELECT * FROM Contacts WHERE Id = @Id", new { Id = id });
         }
-
+        public async Task<Contact> GetByEmailAsync(string email)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryFirstOrDefaultAsync<Contact>(
+                "SELECT * FROM Contacts WHERE Email = @Email", new { Email = email });
+        }
         public async Task<int> CreateAsync(Contact contact)
         {
             using var connection = new SqlConnection(_connectionString);

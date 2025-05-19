@@ -1,13 +1,15 @@
 ﻿using Contacts.Controllers.SignalRHub;
-using Contacts.Data;
-using Contacts.Models;
+using ContactsData.Models;
 using Contacts.Repositories;
+using ContactsData.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using ContactsData.Data;
+using Contacts.Services;
 
 namespace Contacts.Controllers
 {
@@ -20,10 +22,12 @@ namespace Contacts.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IContactService _contactService;
 
         public ContactController(IContactRepository repo, ICountryRepository countryrepo, ApplicationDbContext context,
                                 ISharedContactRepository sharedContactRepository, UserManager<ApplicationUser> userManager,
-                                IHubContext<ChatHub> hubContext)
+                                IHubContext<ChatHub> hubContext, IContactService contactService
+                                )
         {
             _repo = repo;
             _countryrepo = countryrepo;
@@ -31,17 +35,60 @@ namespace Contacts.Controllers
             _userManager = userManager;
             _context = context;
             _hubContext = hubContext;
+            _contactService = contactService;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page,
+            string searchTerm,
+            string sortColumn = "FirstName",
+            string sortDirection = "ASC")
         {
             // If we use List<Contact> as the contacts type, we will meet some errors.
             // because We returnes IEnumerable<Contacts> so it can't cast it to List one.
             //List<Contact> contacts = await _repo.GetListAsync(); X
 
-            var contacts = await _repo.GetListAsync();
+            //var contacts = await _repo.GetListAsync();
+
+            int pageSize = 2;
+            int pageNumber = page ?? 1;
+
+            var contacts = await _contactService.GetFilteredContactsAsync(
+                pageNumber,
+                pageSize,
+                searchTerm ?? "",
+                sortColumn,
+                sortDirection
+            );
+
+            ViewBag.CurrentSearch = searchTerm;
+            ViewBag.CurrentSort = sortColumn;
+            ViewBag.SortDirection = sortDirection;
+
             return View(contacts);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index(
+        string searchTerm,
+        string sortColumn = "FirstName",
+        string sortDirection = "ASC",
+        int page = 1)
+            {
+                int pageSize = 10;
 
+                var contacts = await _contactService.GetFilteredContactsAsync(
+                    page,
+                    pageSize,
+                    searchTerm ?? "",
+                    sortColumn,
+                    sortDirection
+                );
+
+                ViewBag.CurrentSearch = searchTerm;
+                ViewBag.CurrentSort = sortColumn;
+                ViewBag.SortDirection = sortDirection;
+
+                return View(contacts);
+            }
         // GET: /Contact/Create
         public async Task<IActionResult> Create()
         {

@@ -1,9 +1,10 @@
-﻿using Contacts.Models;
+﻿
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mail;
 using System.Net;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using ContactsData.Models;
 
 namespace Contacts.Controllers
 {

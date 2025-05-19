@@ -1,6 +1,6 @@
-﻿using Contacts.Data;
+﻿using ContactsData.Data;
 using Contacts.Migrations;
-using Contacts.Models;
+using ContactsData.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;

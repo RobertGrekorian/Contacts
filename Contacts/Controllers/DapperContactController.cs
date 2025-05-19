@@ -1,5 +1,6 @@
-﻿using Contacts.Models;
+﻿
 using Contacts.Repositories;
+using ContactsData.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

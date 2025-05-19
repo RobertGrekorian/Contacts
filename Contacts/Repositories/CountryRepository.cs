@@ -1,5 +1,5 @@
-﻿using Contacts.Data;
-using Contacts.Models;
+﻿using ContactsData.Models;
+using ContactsData.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Contacts.Repositories

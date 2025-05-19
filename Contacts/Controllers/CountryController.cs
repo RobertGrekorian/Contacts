@@ -1,4 +1,4 @@
-﻿using Contacts.Models;
+﻿using ContactsData.Models;
 using Contacts.Repositories;
 using Microsoft.AspNetCore.Mvc;
 

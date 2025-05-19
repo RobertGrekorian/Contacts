@@ -1,8 +1,8 @@
-using ContactLib.Services;
 using Contacts.Controllers.SignalRHub;
-using Contacts.Data;
-using Contacts.Models;
 using Contacts.Repositories;
+using Contacts.Services;
+using ContactsData.Data;
+using ContactsData.Models;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -57,14 +57,14 @@ builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<ICountryRepository, CountryRepository>();
 builder.Services.AddScoped<ISharedContactRepository, SharedContactRepository>();
 builder.Services.AddScoped<IDapperContactRepository, DapperContactRepository>();
-
-builder.Services.AddScoped<ContactData.IDapperContactRepository, ContactData.DapperContactRepository>();
+//Services
+builder.Services.AddScoped<IContactService, ContactService>();
 
 
 //Email Sender
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddScoped<ITestService, TestService>();
+
 
 var app = builder.Build();
 

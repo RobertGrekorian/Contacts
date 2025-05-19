@@ -1,4 +1,76 @@
-﻿@model IEnumerable<Contact>
+﻿@using X.PagedList.Mvc.Core
+@using X.PagedList
+@model IPagedList<ContactsData.Models.Dto.ContactDto>
+
+@{
+    ViewData["Title"] = "Contacts";
+
+    var sortOptions = new SelectList(new[]
+    {
+        new SelectListItem { Text = "First Name", Value = "FirstName" },
+        new SelectListItem { Text = "Last Name", Value = "LastName" },
+        new SelectListItem { Text = "Email", Value = "Email" },
+        new SelectListItem { Text = "City", Value = "City" }
+    }, "Value", "Text", ViewBag.CurrentSort);
+
+    var sortDirOptions = new SelectList(new[]
+    {
+        new SelectListItem { Text = "Ascending", Value = "ASC" },
+        new SelectListItem { Text = "Descending", Value = "DESC" }
+    }, "Value", "Text", ViewBag.SortDirection);
+}
+
+<h2>Contacts</h2>
+
+<form method="get" asp-controller="Contact" asp-action="Index" class="form-inline mb-3">
+    <div class="form-group me-2">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Search..."
+               value="@ViewBag.CurrentSearch" />
+    </div>
+    <div class="form-group me-2">
+        <select name="sortColumn" asp-items="sortOptions" class="form-select"></select>
+    </div>
+    <div class="form-group me-2">
+        <select name="sortDirection" asp-items="sortDirOptions" class="form-select"></select>
+    </div>
+    <button type="submit" class="btn btn-primary">Apply</button>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>City</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contact in Model)
+        {
+            <tr>
+                <td>@contact.FirstName</td>
+                <td>@contact.LastName</td>
+                <td>@contact.Email</td>
+                <td>@contact.Phone</td>
+                <td>@contact.City</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="text-center">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+            searchTerm = ViewBag.CurrentSearch,
+            sortColumn = ViewBag.CurrentSort,
+            sortDirection = ViewBag.SortDirection
+        }))
+</div>
+@* 
+@model IEnumerable<Contact>
 
 @{
     ViewData["Title"] = "Contact List";
@@ -85,4 +157,4 @@
     });
 </script>
 
-}
+} *@
