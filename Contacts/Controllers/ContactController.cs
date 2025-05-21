@@ -43,7 +43,7 @@ namespace Contacts.Controllers
             string sortDirection = "ASC")
         {
             // If we use List<Contact> as the contacts type, we will meet some errors.
-            // because We returnes IEnumerable<Contacts> so it can't cast it to List one.
+            // because We return IEnumerable<Contact> so it can't cast it to List one.
             //List<Contact> contacts = await _repo.GetListAsync(); X
 
             //var contacts = await _repo.GetListAsync();
@@ -51,7 +51,7 @@ namespace Contacts.Controllers
             int pageSize = 2;
             int pageNumber = page ?? 1;
 
-            var contacts = await _contactService.GetFilteredContactsAsync(
+            var contacts = await _contactService.GetAllFilteredContactsAsync(
                 pageNumber,
                 pageSize,
                 searchTerm ?? "",
