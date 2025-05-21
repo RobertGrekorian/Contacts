@@ -134,7 +134,8 @@ namespace Contacts.Services
                 ["Phone"] = c => c.Phone,
                 ["City"] = c => c.City,
                 ["State"] = c => c.State,
-                ["PostalCode"] = c => c.PostalCode
+                ["PostalCode"] = c => c.PostalCode,
+                ["CountryName"] = c => c.CountryName
             };
 
             Func<ContactDto, object> sortExpression = validSortColumns.TryGetValue(sortColumn, out var column)
@@ -144,7 +145,7 @@ namespace Contacts.Services
             var searchPattern = $"%{searchTerm}%";
 
             var sql = @"
-                        SELECT ID, FirstName, LastName, Email, Address, Phone, City, State, PostalCode
+                        SELECT ID, FirstName, LastName, Email, Address, Phone, City, State, PostalCode,CountryId
                         FROM Contacts
                         WHERE FirstName LIKE @Search 
                            OR LastName LIKE @Search 
@@ -161,10 +162,33 @@ namespace Contacts.Services
             using var connection = new SqlConnection(_connectionString);
             var allContacts = (await connection.QueryAsync<ContactDto>(sql, parameters)).ToList();
 
+            string countrySql = @"
+                                SELECT CountryId, CountryName 
+                                FROM Countries";
+            var countries = (await connection.QueryAsync<(int CountryId,String CountryName)>(countrySql)).ToList();
+
+            var enrichedContacts = (from c in allContacts
+                                    join country in countries on c.CountryId equals country.CountryId 
+                                   // into gj from sub in gj.DefaultIfEmpty()
+                                    select new ContactDto
+                                    {
+                                        Id = c.Id,
+                                        FirstName = c.FirstName,
+                                        LastName = c.LastName,
+                                        Email = c.Email,
+                                        Address = c.Address,
+                                        Phone = c.Phone,
+                                        City = c.City,
+                                        State = c.State,
+                                        PostalCode = c.PostalCode,
+                                        CountryId = c.CountryId,
+                                        CountryName = country.CountryName ?? "Unknown"
+                                    }).ToList();
+
             // Apply sorting
             var sorted = sortDirection.Equals("DESC", StringComparison.OrdinalIgnoreCase)
-                ? allContacts.OrderByDescending(sortExpression)
-                : allContacts.OrderBy(sortExpression);
+                ? enrichedContacts.OrderByDescending(sortExpression)
+                : enrichedContacts.OrderBy(sortExpression);
 
             // Return PagedList using LINQ
             return sorted.ToPagedList(pageNumber, pageSize);
